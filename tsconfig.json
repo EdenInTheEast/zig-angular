@@ -3,6 +3,12 @@
   "compileOnSave": false,
   "compilerOptions": {
     "baseUrl": "./",
+    "paths": {
+      "@app/*": ["src/app/*"], 
+      "@html/*": ["src/app/html/*"], 
+      "@main/*": ["src/app/main/*"],
+      "@interfaces/*": ["src/app/interfaces/*"]         
+    },
     "outDir": "./dist/out-tsc",
     "forceConsistentCasingInFileNames": true,
     "strict": true,
