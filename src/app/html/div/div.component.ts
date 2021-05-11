@@ -26,6 +26,7 @@ export class DivComponent implements OnInit, htmlCompInterface {
 
   
   createDom(): void {
+    // test function	  
     this.child.innerHTML = "test me";
     this.child.setAttribute("id", "Baby");    
 

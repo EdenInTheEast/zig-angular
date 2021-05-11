@@ -28,7 +28,7 @@ export class RestService {
 
   putJSON(apiPoint: string, data: any): Observable<any> {
     //need to add error handler	  	
-    this.response$ = this.httpClient.post(apiPoint, data, this.httpOptions).pipe(retry(3));
+    this.response$ = this.httpClient.put(apiPoint, data, this.httpOptions).pipe(retry(3));
     return this.response$;
   }
 
