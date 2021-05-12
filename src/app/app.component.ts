@@ -23,18 +23,25 @@ import { DivComponent } from '@html/div/div.component';
 import { componentMap } from '@interfaces/component-map';
 
 
+interface InputInteraction {
+	id :string;
+	dom_type: string;
+	attribute: string;
+}
 
-interface Section {
-  dom_type: string;
-  data: Map<string, string>;
-  child: Map<number, any[]>;
+interface InputsInteraction {
+  [index:number] : InputInteraction;
+	length: number;
 }	
 
-interface LayoutData {
-  sections: Map<string, Section>;
-  interactions: Map<string, any[] >;
+
+interface InputMapSingle extends InputInteraction{
+	value: any;
 }	
 
+interface InputMapType {
+	[index:string]: InputMapSingle;
+}	
 
 
 
@@ -43,10 +50,9 @@ interface LayoutData {
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.sass'],
 })
-
 export class AppComponent implements OnInit, AfterViewInit {
   title = 'zig';
-  jsonData! : any;
+  jsonData!: any;
   interactionData: any;
 
   factoryResolver: any;
@@ -56,8 +62,8 @@ export class AppComponent implements OnInit, AfterViewInit {
 
   @ViewChild('zigTemplate', { read: ViewContainerRef }) zigTemplate!: ViewContainerRef;
 
-
-  //STORE THIS SEPARATELY
+  //STORE THIS SEPARATELY, need to be able to set and share externally with python
+	//url use to get layout data from python
   private static readonly initialApiEndPoint: string = 'http://127.0.0.1:5000/api';
 
   constructor(
@@ -69,15 +75,14 @@ export class AppComponent implements OnInit, AfterViewInit {
     @Inject(DOCUMENT) private document: any
   ) {}
 
-  ngOnInit() {
-  }
+  ngOnInit() {}
 
   ngAfterViewInit() {
-    this.insertDOM();
+    this.initializeApp();
     //this.getInitialData();
   }
 
-  insertDOM(): void {
+  initializeApp(): void {
     this.restService.getJSON(AppComponent.initialApiEndPoint).subscribe((data) => {
       // use renderer to make custom html element
 
@@ -90,75 +95,124 @@ export class AppComponent implements OnInit, AfterViewInit {
   }
 
   renderDOM(sectionData: any): void {
-      for (let x in sectionData) {
-        let type: string = sectionData[x]['dom_type'];
-        let properties: {[key: string]: string} = sectionData[x]['data'];
+    for (let x in sectionData) {
+      let type: string = sectionData[x]['dom_type'];
+      let properties: { [key: string]: string } = sectionData[x]['data'];
 
-        if (type != 'graph') {
-          let ele = this.renderer.createElement(type);
+      if (type != 'graph') {
+        let ele = this.renderer.createElement(type);
 
-	  //set attributes
-	  for (let a in properties) {
-	    this.renderer.setAttribute(ele, a, properties[a]); 
-	    if(a=="content"){
-	      this.renderer.setAttribute(ele, "innerHTML", properties[a]); 
-	      ele.innerHTML = properties[a];
+        //set attributes
+        for (let a in properties) {
+          this.renderer.setAttribute(ele, a, properties[a]);
+          if (a == 'content') {
+            this.renderer.setAttribute(ele, 'innerHTML', properties[a]);
+            ele.innerHTML = properties[a];
+          }
+        }
+
+        this.renderer.appendChild(this.elementRef.nativeElement, ele);
+
+        for (let c in sectionData[x]['child']) {
+          //TODO: need to keep doing this recursively
+          let type = sectionData[x]['child'][c]['dom_type'];
+          let prop = sectionData[x]['child'][c]['data'];
+
+          let child = this.renderer.createElement(type);
+
+          for (let a in prop) {
+            this.renderer.setAttribute(child, a, prop[a]);
+            if (a == 'content') {
+              this.renderer.setAttribute(child, 'innerHTML', prop[a]);
+              child.innerHTML = prop[a];
             }
-	  }
-
-	  this.renderer.appendChild(this.elementRef.nativeElement, ele);
-	  
-          //let child = this.renderer.createElement(type);
-          //this.renderer.setAttribute(ele, "style", "height:100px;");
-          //this.renderer.setAttribute(ele, 'appHtml', '');
-          //this.renderer.setProperty(ele, 'appHtml', '');
-          //this.renderer.appendChild(ele, child);
-	  
-	  for (let c in sectionData[x]['child']){
-	    //TODO: need to keep doing this recursively
-	    let type = sectionData[x]['child'][c]['dom_type'];
-	    let prop = sectionData[x]['child'][c]['data'];
-
-	    let child = this.renderer.createElement(type);
-
-	    for (let a in prop) {
-	      this.renderer.setAttribute(child, a, prop[a]);	      
-	      if(a=="content"){
-	        this.renderer.setAttribute(child, "innerHTML", prop[a]); 
-		child.innerHTML = prop[a];
-              }
-	    }
-	    this.renderer.appendChild(ele, child);
-	  }
+          }
+          this.renderer.appendChild(ele, child);
         }
       }
+    }
   }
-
 
   renderInteractions(interactionData: any): void {
-    for(let interact in interactionData) {
-      let apiUrl = interactionData[interact]['api_point'];
+    for (let interact in interactionData) {
+      let apiUrl: string = interactionData[interact]['api_point']; 
 
-      for (let i in interactionData[interact]['input']){
-        let inputID = interactionData[interact]['input'][i]['id']; 
-	let inputAttribute = interactionData[interact]['input'][i]['attribute']; 
+			//NOTE: Map() will have issue with JSON.stringify
+			var inputs: InputsInteraction = interactionData[interact]['input']; 
+			
+		  var inputMap: any = this.getInputMap(inputs);
+			this.setEventListener(inputs, inputMap, apiUrl);
 
-        let inputElement = document.getElementById(inputID);
-	//TODO: this is only for input types
-        this.renderer.listen(inputElement, "change", (event)=> {
-          this.restService.putJSON(apiUrl, {"id":inputID, "attribute":inputAttribute, "value": event.target.value}).subscribe((data) => {
-	    console.log(data);
-	  });
-	});
-      }
-
-      for (let o in interactionData[interact]['output']){
-
+      for (let o in interactionData[interact]['output']) {
+        //NOTE: AT THIS POINT, python backend is the one 
+				//determining and recording the INPUT and OUPUT 
+				//relationships
 
       }
-    }	    	  
+    }
   }
+	
 
+	getInputMap(inputs:InputsInteraction): any {
+    var inputMap: InputMapType = {};
+
+    for(const [indx,input] of Object.entries<InputInteraction>(inputs)) {
+				const inputElement = document.getElementById(input['id']) as HTMLElement;
+				const inputValue = inputElement.getAttribute(input['attribute']);  
+
+				// create input Map first
+				// send all input values on each change
+			  inputMap[indx] = {id: input['id'], dom_type: input['dom_type'], attribute: input['attribute'], value: inputValue};		 
+
+				// TODO: need to handle Graph Object too
+			}	
+		return inputMap
+  }		
+
+
+  setEventListener(inputs:InputsInteraction, inputMap:any, apiUrl: string): void {
+
+    for(const [k,i] of Object.entries<InputInteraction>(inputs)) {				
+				let inputID = i['id'];
+				let inputType = i['dom_type'];
+			  let inputAttribute = i['attribute'];
+        let inputObject = document.getElementById(inputID);
+
+        //TODO:
+        // - Input types with valueX
+        // - mouse and key events
+        // - other types' attributes
+        // - JS elements' properties
+
+        if (inputType == 'input' && inputAttribute=="value") {
+          // this is only for input types' values
+          this.renderer.listen(inputObject, 'change', (event) => {
+            inputMap[k]["value"] = event.target.value;
+
+						//TODO: need error handler
+            this.restService
+              .putJSON(apiUrl, inputMap)
+              .subscribe((data) => {
+								// THIS WILL RETURN OUTPUT CHANGE DATA
+								for(let d in data){
+                  this.updateChange(d, data[d]['attribute'], data[d]['data'], data[d]['dom_type']);
+                }
+              });
+          });
+        }
+      }
+	}
+
+
+	updateChange(id:string, attribute:string, value:any, dom_type?:string) {
+	  let element = <HTMLElement>document.getElementById(id);
+
+		// for content type and html attribute
+		attribute=="content"?element.innerHTML = value:element.setAttribute(attribute, value);
+
+		// TODO: others
+		// graph type
+  }
 
 
   try(): void {
@@ -173,7 +227,7 @@ export class AppComponent implements OnInit, AfterViewInit {
       this.jsonData = data['sections'];
 
       console.log(this.jsonData);
-     
+
       for (let x in this.jsonData) {
         let type = this.jsonData[x]['dom_type'];
         let properties = this.jsonData[x]['data'];
