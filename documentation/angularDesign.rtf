@@ -8,8 +8,9 @@
 \f0\b\fs24 \cf0 \ul \ulc0 Angular Design\
 \
 \
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
 
-\f1\b0 \ulnone - CDN fallback?\
+\f1\b0 \cf0 \ulnone - CDN fallback?\
 	- loads cdn in index\
 	- loads local in script as fallback
 \f0\b \ul \
@@ -31,6 +32,9 @@
 	- how to create nested div?\
 	- how to structure?\
 \
+	1. Current:\
+		- Current html components using renderer\
+		- Use factory to create JS component\
 \
 \
 
@@ -49,8 +53,9 @@
 \pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
 
 \f0\b \cf0 \ul [INTERACTIONS]\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
 
-\f1\b0 \ulnone 	- separate?\
+\f1\b0 \cf0 \ulnone 	- separate?\
 	- client to server:\
 	
 \f0\b 	- onChange Event for value\
@@ -67,26 +72,56 @@
 		- figure\
 		- an object\
 \
-	- \
+	- Current solution:\
+		- Add eventlisteners\
 \
 \
-\
-\
-\
-\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
 
-\f0\b \ul \
+\f0\b \cf0 \ul Interaction types?\
 \
 \
+	Eventlisteners:\
+	
+\f1\b0 \ulnone - HTML attributes\
 \
+		- be specific?	\
+		- what about just being generic?\
+\
+	- HTML innerhtml\
+		\
+	- HTML event attributes\
+		- key and mouse\
+		- be generic?\
+\
+	- input value change X\
+		\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
 
-\f1\b0 \ulnone \
+\f0\b \cf0 	- Component properties?
+\f1\b0 \
+
+\f0\b 		- angular listens to custom event-emitter too
+\f1\b0 \
+		\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f0\b \cf0 \ul 	Updater:\
+	
+\f1\b0 \ulnone - Generic html attribute X\
+	- Generic html innerhtml X\
 \
-\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f0\b \cf0 	- Component Properties?\ul \
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f1\b0 \cf0 \ulnone \
 \
 \
 - HTML component:\
 	- shared interface?\
+\
 \
 \
 }

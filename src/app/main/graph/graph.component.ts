@@ -26,7 +26,6 @@ export class GraphComponent implements OnInit, mainCompInterface {
     
   }
 
-
   ngAfterViewInit() {
     this.createGraph(this.properties['data'],this.properties['layout'] );
   }
